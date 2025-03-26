@@ -1,7 +1,11 @@
 import React, { useState, ChangeEvent, FormEvent } from 'react';
 import axios from 'axios';
 import { useMutation } from '@tanstack/react-query';
-
+import TextField from "@mui/material/TextField";
+import Autocomplete from "@mui/material/Autocomplete";
+import { useGetAllMuncipalities } from "../../../Hooks/Admin/MunicipalityHooks";
+import { useGetAllSkill } from "../../../Hooks/Admin/SkillHooks";
+import UserNavbar from '../../../Components/User/UserNavbar/EmployerNavbar';
 export enum PreferredTimeType {
   DAY = 'Day',
   NIGHT = 'Night',
@@ -19,6 +23,16 @@ export interface JobPost {
   Skill1Name: string;
   Skill2Name: string;
   image: File | undefined;
+}
+
+interface Municipality {
+  municipalityId: number;
+  name: string;
+}
+
+interface Skill {
+  skillId: string;
+  skillName: string;
 }
 
 interface ApiResponse {
@@ -44,6 +58,19 @@ const JobForm: React.FC = () => {
   // State for image preview
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
+
+  // Fetch municipalities and skills
+  const { 
+    data: municipalities, 
+    isLoading: muniLoading, 
+    error: muniError 
+  } = useGetAllMuncipalities();
+  
+  const { 
+    data: skills, 
+    isLoading: skillsLoading, 
+    error: skillsError 
+  } = useGetAllSkill();
 
   // React Query mutation
   const createJobPost = async (formDataToSend: FormData): Promise<ApiResponse> => {
@@ -116,6 +143,27 @@ const JobForm: React.FC = () => {
     }));
   };
 
+  const handleMunicipalitySelect = (municipality: Municipality) => {
+    setFormData(prev => ({
+      ...prev,
+      MuncipalityName: municipality.name
+    }));
+  };
+
+  const handleSkill1Select = (skillName: string) => {
+    setFormData(prev => ({
+      ...prev,
+      Skill1Name: skillName
+    }));
+  };
+
+  const handleSkill2Select = (skillName: string) => {
+    setFormData(prev => ({
+      ...prev,
+      Skill2Name: skillName
+    }));
+  };
+
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSuccess(false);
@@ -136,8 +184,20 @@ const JobForm: React.FC = () => {
     mutation.mutate(formDataToSend);
   };
 
+  // Loading state for dropdowns
+  if (muniLoading || skillsLoading) {
+    return <div className="text-center p-4">Loading form components...</div>;
+  }
+
+  // Error state for dropdowns
+  if (muniError || skillsError) {
+    return <div className="text-center p-4 text-red-500">Error loading form components. Please try again later.</div>;
+  }
+
   return (
-    <div className="max-w-5xl mx-auto p-3 bg-purple-50 rounded-lg shadow-md">
+    <>
+    <UserNavbar/>
+    <div className="max-w-5xl mx-auto p-3 bg-purple-50 rounded-lg shadow-md mt-8">
       <div className="flex flex-col lg:flex-row">
         {/* Form Section */}
         <div className="w-full lg:w-2/3 px-3">
@@ -171,7 +231,7 @@ const JobForm: React.FC = () => {
                 value={formData.Title}
                 onChange={handleChange}
                 required
-                placeholder="e.g. Senior Web Developer"
+                placeholder="Plumber"
                 className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500"
               />
             </div>
@@ -255,45 +315,99 @@ const JobForm: React.FC = () => {
               </select>
             </div>
             
+            {/* Municipality Dropdown - Replaced with MUI Autocomplete */}
             <div>
-              <label htmlFor="MuncipalityName" className="block text-sm font-medium mb-1 text-gray-700">Municipality</label>
-              <input
-                type="text"
-                id="MuncipalityName"
-                name="MuncipalityName"
-                value={formData.MuncipalityName}
-                onChange={handleChange}
-                required
-                placeholder="e.g. New York"
-                className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500"
+              <label className="block text-sm font-medium mb-1 text-gray-700">Municipality</label>
+              <Autocomplete
+                disablePortal
+                options={municipalities || []}
+                getOptionLabel={(option: Municipality) => option.name}
+                onChange={(_, value) => {
+                  if (value) {
+                    handleMunicipalitySelect(value);
+                  }
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    required
+                    variant="outlined"
+                    placeholder=""
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        "& fieldset": { borderColor: "#B0BEC5" },
+                        "&:hover fieldset": { borderColor: "#90A4AE" },
+                        "&.Mui-focused fieldset": { borderColor: "#78909C" },
+                      },
+                      "& .MuiInputLabel-root": { color: "#9333EA" },
+                      "& .MuiInputLabel-root.Mui-focused": { color: "#9333EA" },
+                    }}
+                  />
+                )}
               />
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {/* Primary Skill Dropdown - Replaced with MUI Autocomplete */}
               <div>
-                <label htmlFor="Skill1Name" className="block text-sm font-medium mb-1 text-gray-700">Primary Skill</label>
-                <input
-                  type="text"
-                  id="Skill1Name"
-                  name="Skill1Name"
-                  value={formData.Skill1Name}
-                  onChange={handleChange}
-                  required
-                  placeholder="e.g. JavaScript"
-                  className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500"
+                <label className="block text-sm font-medium mb-1 text-gray-700">Primary Skill</label>
+                <Autocomplete
+                  disablePortal
+                  options={skills || []}
+                  getOptionLabel={(option: Skill) => option.skillName}
+                  onChange={(_, value) => {
+                    if (value) {
+                      handleSkill1Select(value.skillName);
+                    }
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      required
+                      variant="outlined"
+                     
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          "& fieldset": { borderColor: "#B0BEC5" },
+                          "&:hover fieldset": { borderColor: "#90A4AE" },
+                          "&.Mui-focused fieldset": { borderColor: "#78909C" },
+                        },
+                        "& .MuiInputLabel-root": { color: "#9333EA" },
+                        "& .MuiInputLabel-root.Mui-focused": { color: "#9333EA" },
+                      }}
+                    />
+                  )}
                 />
               </div>
               
+              {/* Secondary Skill Dropdown - Replaced with MUI Autocomplete */}
               <div>
-                <label htmlFor="Skill2Name" className="block text-sm font-medium mb-1 text-gray-700">Secondary Skill</label>
-                <input
-                  type="text"
-                  id="Skill2Name"
-                  name="Skill2Name"
-                  value={formData.Skill2Name}
-                  onChange={handleChange}
-                  placeholder="e.g. React"
-                  className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500"
+                <label className="block text-sm font-medium mb-1 text-gray-700">Secondary Skill</label>
+                <Autocomplete
+                  disablePortal
+                  options={skills || []}
+                  getOptionLabel={(option: Skill) => option.skillName}
+                  onChange={(_, value) => {
+                    if (value) {
+                      handleSkill2Select(value.skillName);
+                    }
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      variant="outlined"
+                   
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          "& fieldset": { borderColor: "#B0BEC5" },
+                          "&:hover fieldset": { borderColor: "#90A4AE" },
+                          "&.Mui-focused fieldset": { borderColor: "#78909C" },
+                        },
+                        "& .MuiInputLabel-root": { color: "#9333EA" },
+                        "& .MuiInputLabel-root.Mui-focused": { color: "#9333EA" },
+                      }}
+                    />
+                  )}
                 />
               </div>
             </div>
@@ -414,6 +528,7 @@ const JobForm: React.FC = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

@@ -167,7 +167,7 @@ export default function ProfileForm() {
         <button
           type="submit"
           className="w-full bg-purple-600 text-white py-2 rounded-md hover:bg-purple-700 transition"
-        >
+       onClick={()=>("client-home-page")} >
           Submit
         </button>
       </form>

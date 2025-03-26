@@ -4,7 +4,7 @@ import {
   ProfileDetails, 
   UpdateProfileData, 
   updateProfile, 
-  getLabourProfil,
+  getLabourProfile,
   deleteMunicipality,
   deleteWorkImage,
   deleteSkill,
@@ -38,11 +38,10 @@ export const useUpdateProfile = () => {
 export const useLabourProfile = () => {
   return useQuery<LabourProfile, Error>({
     queryKey: ["labourProfile"],
-    queryFn: getLabourProfil,
+    queryFn: getLabourProfile,
   });
 };
 
-// Hook for deleting a work image
 export const useDeleteWorkImage = () => {
   return useMutation<void, Error, string>({
     mutationFn: deleteWorkImage,

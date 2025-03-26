@@ -13,33 +13,29 @@ export default function SkillDropdown({
 }: SkillDropdownProps) {
   const { data, isLoading, error } = useGetAllSkill();
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>Error loading skills. Please try again later.</div>;
-  }
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error loading skills</div>;
 
   return (
     <Autocomplete
       disablePortal
       options={data || []}
-      sx={{ width: 300 }}
+      sx={{ width: 200 }} // Reduced width from 300 to 200
       getOptionLabel={(option: { skillId: string; skillName: string }) =>
         option.skillName
       }
       onChange={(_, value) => {
         if (value) {
-          onSelectSkill(value.skillId); 
+          onSelectSkill(value.skillName);
         }
       }}
       renderInput={(params) => (
         <TextField
           {...params}
           required={required}
-            label="Select Skills"
+          label="Skills"
           variant="outlined"
+          size="small" // Added small size to reduce input height
           sx={{
             "& .MuiOutlinedInput-root": {
               "& fieldset": { borderColor: "#B0BEC5" },
@@ -48,6 +44,7 @@ export default function SkillDropdown({
             },
             "& .MuiInputLabel-root": {
               color: "#9333EA",
+              fontSize: "0.8rem", // Smaller font size
             },
             "& .MuiInputLabel-root.Mui-focused": {
               color: "#9333EA",

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { FaUserCircle, FaComments, FaSignOutAlt, FaBars, FaTimes } from "react-icons/fa";
+import { FaUserCircle, FaComments, FaSignOutAlt, FaBars, FaTimes, FaBell } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { useLogout } from "../../../Hooks/User/Authentication/LoginHooks";
 
 const NavbarTwo: React.FC = () => {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrollPosition, setScrollPosition] = useState(0);
+  const logoutMutation = useLogout();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -15,6 +17,23 @@ const NavbarTwo: React.FC = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await logoutMutation.mutateAsync();
+      navigate("/login"); // Redirect to login page after logout
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  };
+
+  const handleNotificationNavigation = () => {
+    console.log("Navigating to notifications");
+    navigate("/notifications");
+    if (menuOpen) {
+      setMenuOpen(false);
+    }
+  };
 
   return (
     <nav 
@@ -53,13 +72,39 @@ const NavbarTwo: React.FC = () => {
             className="cursor-pointer text-gray-600 group-hover:text-purple-600 transition-colors duration-200 z-10 relative" 
             title="Chats" 
             size={24}
+            onClick={() => {
+              navigate("/chat");
+              if (menuOpen) {
+                setMenuOpen(false);
+              }
+            }}
           />
+          <span className="absolute inset-0 bg-purple-50 rounded-full transform scale-0 group-hover:scale-100 transition-transform duration-300 z-0"></span>
+        </button>
+        
+        {/* Notification Button */}
+        <button 
+          className="relative group p-2 overflow-hidden"
+          onClick={handleNotificationNavigation}
+        >
+          <FaBell
+            className="cursor-pointer text-gray-600 group-hover:text-purple-600 transition-colors duration-200 z-10 relative"
+            title="Notifications"
+            size={24}
+          />
+          {/* Notification Badge - Uncomment and use if you want to show unread count */}
+          {/* <span className="absolute top-0 right-0 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center z-20">3</span> */}
           <span className="absolute inset-0 bg-purple-50 rounded-full transform scale-0 group-hover:scale-100 transition-transform duration-300 z-0"></span>
         </button>
         
         <button 
           className="relative group p-2 overflow-hidden"
-          onClick={() => navigate("/profile-settings")}
+          onClick={() => {
+            navigate("/profile-settings");
+            if (menuOpen) {
+              setMenuOpen(false);
+            }
+          }}
         >
           <FaUserCircle
             className="cursor-pointer text-gray-600 group-hover:text-purple-600 transition-colors duration-200 z-10 relative"
@@ -69,9 +114,13 @@ const NavbarTwo: React.FC = () => {
           <span className="absolute inset-0 bg-purple-50 rounded-full transform scale-0 group-hover:scale-100 transition-transform duration-300 z-0"></span>
         </button>
         
-        <button className="relative group p-2 overflow-hidden">
+        <button 
+          className="relative group p-2 overflow-hidden"
+          onClick={handleLogout}
+          disabled={logoutMutation.isPending}
+        >
           <FaSignOutAlt 
-            className="cursor-pointer text-gray-600 group-hover:text-red-600 transition-colors duration-200 z-10 relative" 
+            className={`cursor-pointer text-gray-600 group-hover:text-red-600 transition-colors duration-200 z-10 relative ${logoutMutation.isPending ? 'animate-spin' : ''}`}
             title="Logout" 
             size={24}
           />

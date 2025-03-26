@@ -14,6 +14,8 @@ export interface JobPosts {
   skillId1: string;
   skillId2: string;
   image: string;
+  fullName:string;
+  profileImageUrl:string;
 }
 
 const BASE_URL = "https://localhost:7299/api/Job";

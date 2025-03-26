@@ -19,7 +19,7 @@ export const getEmployerDetails = async () => {
 
 export const updateEmployerProfile = async (data: any) => {
   try {
-    const response = await axios.post('https://localhost:7202/api/Employer/update-profile', data);
+    const response = await axios.patch('https://localhost:7202/api/Employer/edit/Profile', data);
     return response.data;
   } catch (error) {
     throw new Error('Failed to update profile');

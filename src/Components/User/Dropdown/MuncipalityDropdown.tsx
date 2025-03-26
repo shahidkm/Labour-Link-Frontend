@@ -14,19 +14,15 @@ interface ComboBoxProps {
 export default function ComboBox({ onSelectMunicipality }: ComboBoxProps) {
   const { data, isLoading, error } = useGetAllMuncipalities();
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+  if (isLoading) return <div>Loading...</div>;
 
-  if (error) {
-    return <div>Error loading data. Please try again later.</div>;
-  }
+  if (error) return <div>Error loading data</div>;
 
   return (
     <Autocomplete
       disablePortal
       options={data || []}
-      sx={{ width: 300 }}
+      sx={{ width: 200 }} // Reduced width from 300 to 200
       getOptionLabel={(option: Municipality) => option.name}
       onChange={(_, value) => {
         if (value) {
@@ -38,14 +34,18 @@ export default function ComboBox({ onSelectMunicipality }: ComboBoxProps) {
         <TextField
           {...params}
           variant="outlined"
-          label="Select Municipality"
+          label="Municipality"
+          size="small" // Added small size to reduce input height
           sx={{
             "& .MuiOutlinedInput-root": {
               "& fieldset": { borderColor: "#B0BEC5" },
               "&:hover fieldset": { borderColor: "#90A4AE" },
               "&.Mui-focused fieldset": { borderColor: "#78909C" },
             },
-            "& .MuiInputLabel-root": { color: "#9333EA" },
+            "& .MuiInputLabel-root": { 
+              color: "#9333EA",
+              fontSize: "0.8rem", // Smaller font size
+            },
             "& .MuiInputLabel-root.Mui-focused": { color: "#9333EA" },
           }}
         />

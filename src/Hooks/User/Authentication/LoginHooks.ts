@@ -1,10 +1,11 @@
 import { useMutation } from "@tanstack/react-query";
-import toast from "react-hot-toast";
-import { loginUser } from "../../../Services/User/Authentication/LoginServices";
 import { useDispatch } from "react-redux";
-import { setUser } from "../../../Redux/userSlice";
 import { useNavigate } from "react-router-dom";
+
+import { loginUser } from "../../../Services/User/Authentication/LoginServices";
 import { authService } from "../../../Services/User/Authentication/LoginServices";
+import { setUser } from "../../../Redux/userSlice";
+
 export const useAccountLogin = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -12,32 +13,45 @@ export const useAccountLogin = () => {
   return useMutation({
     mutationFn: loginUser,
     onSuccess: (data) => {
+      console.log("Full login response data:", data);
+      
+      // Ensure data and userType exist
       if (!data || !data.userType) {
-        toast.error("Invalid response from server.");
         return;
       }
-      toast.success(`Logged in as: ${data.userType}`);
+console.log(data);
 
+      // Dispatch user information to Redux
       dispatch(setUser({ 
         userType: data.userType, 
-        isProfileCompleted: data.profileCompletion 
+        isProfileCompleted: data.isProfileCompleted
       }));
 
-      navigate(
-        data.userType === "Labour"
-          ? "/labour-home-page"
-          : data.userType === "Employer"
-          ? "/client-home-page"
-          : "/"
-      );
+      // Navigation logic based on userType and isProfileCompleted
+      if (data.userType === "Labour") {
+        // If profile is not completed, go to profile settings
+        if (!data.isProfileCompleted) {
+          navigate("/profile-settings");
+          return;
+        }
+        // If profile is completed, go to labour home page
+        // navigate("/labour-home-page");
+        // return;
+      }
+
+      if (data.userType === "Employer") {
+        navigate("/client-home-page");
+        return;
+      }
+
+      // Fallback navigation
+      navigate("/");
     },
-    onError: () => {
-      toast.error("Login failed. Please try again.");
+    onError: (error) => {
+      console.error("Login error details:", error);
     },
   });
 };
-
-
 
 export const useLogout = () => {
   return useMutation({

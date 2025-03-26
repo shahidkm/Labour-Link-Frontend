@@ -30,13 +30,26 @@ const LoginPage = () => {
         }
 
         toast.success(`Logged in as: ${response.userType}`);
-        navigate(
-          response.userType === "Labour"
-            ? "/labour-home-page"
-            : response.userType === "Employer"
-            ? "/client-home-page"
-            : "/"
-        );
+
+        // Navigation logic based on userType and isProfileCompleted
+        if (response.userType === "Labour") {
+          // If profile is not completed, go to profile settings
+          if (!response.isProfileCompleted) {
+            navigate("/profile-settings");
+            return;
+          }
+          // If profile is completed, go to labour home page
+          navigate("/labour-home-page");
+          return;
+        }
+
+        if (response.userType === "Employer") {
+          navigate("/client-home-page");
+          return;
+        }
+
+        // Fallback navigation
+        navigate("/");
       },
     });
   };

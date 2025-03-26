@@ -42,7 +42,7 @@ const JobDetailsPage: React.FC = () => {
               <h1 className="text-xl sm:text-2xl md:text-3xl font-medium text-gray-800">{jobPost?.title}</h1>
               <div className="flex items-center mt-2 text-gray-600">
                 <FaMapMarkerAlt className="mr-2 text-purple-500" />
-                <span className="text-sm sm:text-base">{jobPost?.muncipalityName || "Location"}</span>
+                <span className="text-sm sm:text-base">{jobPost?.preferedMunicipality}</span>
               </div>
             </div>
             
@@ -74,6 +74,7 @@ const JobDetailsPage: React.FC = () => {
                       <span className="text-sm">Date</span>
                     </div>
                     <p className="text-sm font-medium">{new Date(jobPost?.startDate).toLocaleDateString()}</p>
+                    <p className="text-sm font-medium">{new Date(jobPost?.endDate).toLocaleDateString()}</p>
                   </div>
                 </div>
                 
@@ -97,7 +98,7 @@ const JobDetailsPage: React.FC = () => {
                   <div className="bg-gray-50 p-4 md:p-5 rounded shadow-sm">
                     <div className="flex items-center">
                       <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        jobPost?.status === "Open" ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"
+                        jobPost?.status === "Active" ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"
                       }`}>
                         {jobPost?.status}
                       </div>
@@ -136,9 +137,9 @@ const JobDetailsPage: React.FC = () => {
                 <div className="bg-purple-50 p-4 rounded-lg shadow-sm mb-6">
                   <h3 className="font-medium text-purple-700 mb-3 text-base md:text-lg">Posted by</h3>
                   <div className="flex items-center">
-                    {jobPost?.userImage ? (
+                    {jobPost?.profileImageUrl ? (
                       <img 
-                        src={jobPost.userImage} 
+                        src={jobPost.profileImageUrl} 
                         alt="User Profile" 
                         className="w-12 h-12 rounded-full object-cover border-2 border-purple-300"
                       />
@@ -148,7 +149,7 @@ const JobDetailsPage: React.FC = () => {
                       </div>
                     )}
                     <div className="ml-3">
-                      <p className="font-medium text-gray-800">{jobPost?.userName || "User"}</p>
+                      <p className="font-medium text-gray-800">{jobPost?.fullName || "User"}</p>
                       <p className="text-xs text-gray-500">Job Provider</p>
                     </div>
                   </div>
@@ -166,20 +167,16 @@ const JobDetailsPage: React.FC = () => {
                 )}
                 
                 {/* Apply Button - Larger and more prominent */}
-                <button className="w-full py-3 md:py-4 bg-purple-500 hover:bg-purple-600 text-white font-medium text-base md:text-lg rounded shadow-md hover:shadow-lg transition duration-200 mb-6 md:mb-8">
-                  Apply Now
-                </button>
+                
                 
                 {/* Job Posted Info - Better spacing and mobile friendly */}
                 <div className="bg-gray-50 p-4 md:p-5 rounded shadow-sm">
                   <h3 className="font-medium text-gray-800 mb-2 md:mb-3 text-base md:text-lg">Job Information</h3>
                   <p className="text-sm md:text-base text-gray-600">
                     <span className="block mb-1 md:mb-2">
-                      <strong>Posted on:</strong> {new Date(jobPost?.startDate).toLocaleDateString()}
+                      <strong>Posted on:</strong> {new Date(jobPost?.createdDate).toLocaleDateString()}
                     </span>
-                    {/* <span className="block mb-1 md:mb-2">
-                      <strong>Job ID:</strong> {jobId}
-                    </span> */}
+                 
                     <span className="block">
                       <strong>Status:</strong> {jobPost?.status}
                     </span>

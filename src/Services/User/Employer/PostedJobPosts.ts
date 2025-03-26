@@ -8,12 +8,14 @@ export interface JobPost {
   description: string;
   wage: number;
   startDate: string;
+  endDate:string;
   prefferedTime: string;
   municipalityId: number;
   status: string;
   skillId1: string;
   skillId2: string;
   image: string;
+  createdDate:Date;
 }
 
 export const fetchJobs = async (): Promise<JobPost[]> => {

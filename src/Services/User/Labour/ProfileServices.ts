@@ -46,7 +46,7 @@ export const AddProfile = async (Profile: ProfileDetails): Promise<ProfileDetail
     });
     
     const response = await axios.post(
-      "https://localhost:7202/api/Labour/complete-profile", 
+      "https://local", 
       formData,
       
       {
@@ -65,168 +65,110 @@ export const AddProfile = async (Profile: ProfileDetails): Promise<ProfileDetail
 
 
 
-export interface UpdateProfileData {
+
+
+
+
+  
+
+  const api = axios.create({
+    baseURL: 'https://localhost:7202/api',
+    withCredentials: true, // Enable sending cookies with requests
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  });
+  
+  export interface UpdateProfileData {
     FullName: string;
     PreferedTime: string;
     AboutYourSelf: string;
     Image: File | null;
-   
   }
   
   export const updateProfile = async (data: UpdateProfileData) => {
     const formData = new FormData();
     formData.append("FullName", data.FullName);
+    formData.append("PreferedTime", data.PreferedTime)
     formData.append("AboutYourSelf", data.AboutYourSelf);
+   ;
+    
     if (data.Image) {
-      formData.append("Image", data.Image);
+      formData.append("image", data.Image);
     }
-    formData.append("preferredTime", data.PreferedTime);
-    console.log(formData);
-      
-    const response = await axios.patch("https://localhost:7202/api/Labour/edit/profile", formData, {
-     
+    
+    const response = await api.patch("/Labour/edit/profile", formData, {
       headers: { "Content-Type": "multipart/form-data" },
-
-      
-      
     });
-    console.log(response.data);
+    
     return response.data;
-    
-    
   };
-
-
-
-
   
-
-// Define the shape of the data returned by the API
-export interface LabourProfile {
-  labourId: string;
-  labourProfileCompletion: {
-    fullName: string;
-    phoneNumber: string;
-    preferredTime: string;
-    aboutYourSelf: string;
-  };
-  profilePhotoUrl: string;
-  labourWorkImages: string[];
-  labourPreferredMuncipalities: number[];
-  labourSkills: string[];
-}
-
-
-
-
-export const getLabourProfil = async (): Promise<LabourProfile> => {
-  try {
-    const response = await axios.get<LabourProfile>("https://localhost:7202/api/Labour/getLabour");
-    console.log("Labour Profile Data:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching labour profile:", error);
-    throw error;
+  // Define the shape of the data returned by the API
+  export interface LabourProfile {
+    labourId: string;
+    labourProfileCompletion: {
+      fullName: string;
+      phoneNumber: string;
+      preferredTime: string;
+      aboutYourSelf: string;
+    };
+    profilePhotoUrl: string;
+    labourWorkImages: string[];
+    labourPreferredMuncipalities: number[];
+    labourSkills: string[];
   }
-};
-
-
-// Service function to delete a work image by its URL
-export const deleteWorkImage = async (imageUrl: string): Promise<void> => {
-  const response = await fetch("https://localhost:7202/api/Labour/delete/workimage", {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ imageUrl }),
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to delete work image");
-  }
-};
-
-// Service function to delete a skill by skill ID
-export const deleteSkill = async (skillId: string): Promise<void> => {
-  const response = await fetch("https://localhost:7202/api/Labour/delete/skill", {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ skillId }),
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to delete skill");
-  }
-};
-
-// Service function to delete a municipality by municipality ID
-export const deleteMunicipality = async (municipalityId: number): Promise<void> => {
-  const response = await fetch("https://localhost:7202/api/Labour/delete/municipality", {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ municipalityId }),
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to delete municipality");
-  }
-};
-
-// Service function to add a municipality by municipality ID
-export const addMunicipality = async (municipalityId: number): Promise<void> => {
-  const response = await fetch("https://localhost:7202/api/Labour/add/municipality", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ municipalityId }),
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to add municipality");
-  }
-};
-
-// Service function to add a skill by skill ID
-export const addSkill = async (skillId: string): Promise<void> => {
-  const response = await fetch("https://localhost:7202/api/Labour/add/skill", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ skillId }),
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to add skill");
-  }
-};
-
-// Service function to add a work image (image file)
-export const addWorkImage = async (imageFile: File): Promise<void> => {
-  const formData = new FormData();
-  formData.append("image", imageFile); // Ensure this key matches your backend's "image"
-
-  try {
-    const response = await fetch("https://localhost:7202/api/Labour/add/workimage", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("Error adding work image:", errorData);
-      throw new Error(errorData.title || "Failed to add work image");
+  
+  // Export both versions of the function name for backward compatibility
+  export const getLabourProfil = async (): Promise<LabourProfile> => {
+    try {
+      const response = await api.get<LabourProfile>("/Labour/getLabour");
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching labour profile:", error);
+      throw error;
     }
-
-    console.log("Work image added successfully!");
-  } catch (error) {
-    console.error("Upload failed:", error);
-  }
-};
-
-
+  };
+  
+  export const getLabourProfile = getLabourProfil; // Alias
+  
+  // Service function to delete a work image by its URL
+  export const deleteWorkImage = async (WorkImage: string): Promise<void> => {
+    await api.delete("/Labour/delete/workimage", {
+      data: { WorkImage }
+    });
+  };
+  
+  // Service function to delete a skill by skill ID
+  export const deleteSkill = async (skillName: string): Promise<void> => {
+    await api.delete("/Labour/delete/skill", {
+      data: { skillName }
+    });
+  };
+  
+  // Service function to delete a municipality by municipality ID
+  export const deleteMunicipality = async (municipalityId: number): Promise<void> => {
+    await api.delete("/Labour/delete/municipality", {
+      data: { municipalityId }
+    });
+  };
+  
+  // Service function to add a municipality by municipality ID
+  export const addMunicipality = async (municipalityId: number): Promise<void> => {
+    await api.post("/Labour/add/municipality", { municipalityId });
+  };
+  
+  // Service function to add a skill by skill ID
+  export const addSkill = async (skillId: string): Promise<void> => {
+    await api.post("/Labour/add/skill", { skillId }); // Fixed the typo in the endpoint from "aad" to "add"
+  };
+  
+  // Service function to add a work image (image file)
+  export const addWorkImage = async (imageFile: File): Promise<void> => {
+    const formData = new FormData();
+    formData.append("image", imageFile);
+  
+    await api.post("/Labour/add/workimage", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  };

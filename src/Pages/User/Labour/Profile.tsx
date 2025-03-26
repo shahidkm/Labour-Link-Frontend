@@ -1,21 +1,112 @@
 import React, { useState, useRef } from "react";
-import { useAddProfile } from "../../../Hooks/User/Labour/LabourProfileHook";
+import { useMutation } from "@tanstack/react-query";
+import { useDispatch } from "react-redux";
+import axios from "axios";
 import ComboBox from "../../../Components/User/Dropdown/MuncipalityDropdown";
 import SkillDropdown from "../../../Components/User/Dropdown/SkillDropDown";
 import NavbarTwo from "../../../Components/User/UserNavbar/Navbar2";
+import { updateProfileCompletion } from "../../../Redux/userSlice";
+import { useNavigate } from "react-router-dom";
+// Profile details interface
+export interface ProfileDetails {
+  FullName: string;
+  PhoneNumber: string;
+  PreferedTime: string;
+  AboutYourSelf: string;
+  ProfileImage: File | null; 
+  LabourPreferredMunicipalities: string[];
+  LabourWorkImages: File[];
+  LabourSkills: string[];
+}
 
+// Municipality interface
+interface Municipality {
+  municipalityId: number;
+  name: string;
+}
+
+// API function
+export const AddProfile = async (Profile: ProfileDetails): Promise<ProfileDetails> => {
+  console.log("Sending data:", Profile);
+  
+  try {
+    // Create FormData for handling file uploads
+    const formData = new FormData();
+    
+    // Append text fields
+    formData.append("FullName", Profile.FullName);
+    formData.append("PhoneNumber", Profile.PhoneNumber);
+    formData.append("PreferedTime", Profile.PreferedTime);
+    formData.append("AboutYourSelf", Profile.AboutYourSelf);
+    
+    // Append arrays (municipalities and skills)
+    Profile.LabourPreferredMunicipalities.forEach((municipality, index) => {
+      formData.append(`LabourPreferredMunicipalities[${index}]`, municipality);
+    });
+    
+    Profile.LabourSkills.forEach((skill, index) => {
+      formData.append(`LabourSkills[${index}]`, skill);
+    });
+    
+    // Append profile image if it exists
+    if (Profile.ProfileImage) {
+      formData.append("ProfileImage", Profile.ProfileImage);
+    }
+    
+    // Append work images as simple files with numeric index
+    Profile.LabourWorkImages.forEach((image) => {
+      // Send work images as just files without any additional properties
+      formData.append("LabourWorkImages", image);
+    });
+    
+    const response = await axios.post(
+      "https://localhost:7202/api/Labour/complete/profile", 
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: true
+      }
+    );
+    
+    console.log("Response data:", response.data);
+    return response.data;
+  } catch (ex) {
+    console.error("Error in AddProfile:", ex);
+    throw ex; // Re-throw the exception to be handled by the caller
+  }
+};
+
+// Custom hook for adding profile
+export const useAddProfile = () => {
+  const dispatch = useDispatch();
+  
+  return useMutation<ProfileDetails, Error, ProfileDetails>({
+    mutationFn: AddProfile,
+    onSuccess: () => {
+      // Update the profile completion status to true upon successful profile addition
+      dispatch(updateProfileCompletion(true));
+    },
+    onError: () => {
+      // Also update profile completion status to true even if there's an error
+      dispatch(updateProfileCompletion(true));
+    }
+  });
+};
+
+// Main component
 export const ProfileSettings: React.FC = () => {
+  const dispatch = useDispatch();
   const { mutate } = useAddProfile();
 
-  const [profile, setProfile] = useState({
+  const [profile, setProfile] = useState<ProfileDetails>({
     FullName: "",
     PhoneNumber: "",
     PreferedTime: "",
     AboutYourSelf: "",
-    ProfileImage: null as File | null,
-    LabourPreferredMunicipalities: [] as string[],
-    LabourWorkImages: [] as File[],
-    LabourSkills: [] as string[],
+    ProfileImage: null,
+    LabourPreferredMunicipalities: [],
+    LabourWorkImages: [],
+    LabourSkills: [],
   });
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -34,16 +125,30 @@ export const ProfileSettings: React.FC = () => {
 
   const handleWorkImagesUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (files) {
+    if (files && files.length > 0) {
+      // Create a new array with the files to avoid mutation issues
+      const newWorkImages = Array.from(files);
+      
+      // Check if adding these new images would exceed the limit of 2
+      const totalImages = [...profile.LabourWorkImages, ...newWorkImages];
+      const imagesToAdd = totalImages.slice(0, 2); // Only take up to 2 images
+      
       setProfile((prev) => ({
         ...prev,
-        LabourWorkImages: [...prev.LabourWorkImages, ...Array.from(files)].slice(0, 2),
+        LabourWorkImages: imagesToAdd,
       }));
     }
   };
 
   const handleWorkImageClick = () => {
     workImageInputRef.current?.click();
+  };
+
+  const removeWorkImage = (index: number) => {
+    setProfile((prev) => ({
+      ...prev,
+      LabourWorkImages: prev.LabourWorkImages.filter((_, i) => i !== index),
+    }));
   };
 
   const addSkill = (skill: string) => {
@@ -62,7 +167,7 @@ export const ProfileSettings: React.FC = () => {
     }));
   };
 
-  const addMunicipality = (municipality: { municipalityId: number; name: string }) => {
+  const addMunicipality = (municipality: Municipality) => {
     if (municipality && !profile.LabourPreferredMunicipalities.includes(municipality.name)) {
       setProfile((prev) => ({
         ...prev,
@@ -78,29 +183,21 @@ export const ProfileSettings: React.FC = () => {
     }));
   };
 
+  var navigate=useNavigate();
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Create a new object with properties in the specified order
-    const orderedProfile = {
-      FullName: profile.FullName,
-      PhoneNumber: profile.PhoneNumber,
-      PreferedTime: profile.PreferedTime,
-      AboutYourSelf: profile.AboutYourSelf,
-      ProfileImage: profile.ProfileImage,
-      LabourPreferredMunicipalities: profile.LabourPreferredMunicipalities,
-      LabourWorkImages: profile.LabourWorkImages,
-      LabourSkills: profile.LabourSkills,
-    };
-    
-    console.log("Sending data:", orderedProfile.ProfileImage);
-    mutate(orderedProfile);
+    // Set profile completed to true immediately when button is clicked
+    dispatch(updateProfileCompletion(true));
+    // Send the profile data to the API
+    mutate(profile);
+    navigate("/labour-home-page")
   };
 
   return (
     <div>
       <NavbarTwo />
-      <div className="bg-purple-50 min-h-screen mt-[50px]">
+      <div className="bg-purple-50 min-h-screen mt-[80px]">
         <div className="container mx-auto py-6 px-3">
           <div className="bg-white shadow-md rounded-lg overflow-hidden">
             <div className="bg-gradient-to-r from-purple-600 to-purple-400 p-4">
@@ -268,18 +365,32 @@ export const ProfileSettings: React.FC = () => {
                       <div
                         key={index}
                         className={`
-                          w-24 h-24 rounded-md overflow-hidden cursor-pointer 
-                          ${profile.LabourWorkImages[index] ? 'border border-green-400' : 'border border-dashed border-gray-300'} 
+                          relative w-24 h-24 rounded-md overflow-hidden cursor-pointer 
+                          ${index < profile.LabourWorkImages.length ? 'border border-green-400' : 'border border-dashed border-gray-300'} 
                           hover:border-purple-400 transition-all duration-300 flex items-center justify-center bg-gray-50
                         `}
                         onClick={handleWorkImageClick}
                       >
-                        {profile.LabourWorkImages[index] ? (
-                          <img
-                            src={URL.createObjectURL(profile.LabourWorkImages[index])}
-                            alt="Work Sample"
-                            className="w-full h-full object-cover"
-                          />
+                        {index < profile.LabourWorkImages.length ? (
+                          <>
+                            <img
+                              src={URL.createObjectURL(profile.LabourWorkImages[index])}
+                              alt={`Work Sample ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                            <button
+                              className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full transform translate-x-1/4 -translate-y-1/4 hover:bg-red-600"
+                              onClick={(e) => {
+                                e.stopPropagation(); // Prevent triggering the parent onClick
+                                removeWorkImage(index);
+                              }}
+                              type="button"
+                            >
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                              </svg>
+                            </button>
+                          </>
                         ) : (
                           <div className="flex flex-col items-center text-gray-400">
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -299,13 +410,17 @@ export const ProfileSettings: React.FC = () => {
                     onChange={handleWorkImagesUpload}
                     className="hidden"
                   />
+                  <div className="mt-2 text-xs text-gray-500">
+                    {profile.LabourWorkImages.length}/2 images uploaded
+                  </div>
                 </div>
 
                 <div className="mt-6 text-center">
                   <button 
                     type="submit" 
                     className="px-6 py-2 bg-gradient-to-r from-purple-600 to-purple-500 text-white text-sm rounded-md shadow hover:from-purple-700 hover:to-purple-600 transform hover:scale-105 transition-all duration-300"
-                  >
+                 
+                 >
                     Save Profile
                   </button>
                 </div>

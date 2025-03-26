@@ -24,25 +24,26 @@ import LandingPage from "../Components/User/LandingPage";
 import JobDetailsPage from "../Components/Labour/JobPostDetailsPage";
 import JobForm from "../Pages/User/Employer/PostJobPage";
 import EditLabourProfile from "../Pages/User/Labour/EditLabourProfile";
-
+import NewChatForEmployer from "../Chat/ChatForEmployer";
 
 
 import EmployerProfile from "../Pages/User/Employer/EmployerProfile";
 import LabourProfileTwo from "../Pages/User/Employer/LabouProfile";
-
-import LabourProfilePage from "../Pages/User/Labour/LabourProfilePage";
-import NewChat from "../Chat/chat";
-import ContactsList from "../Chat/contactList";
+import EmployeeNotifications from "../Pages/User/Employer/EmployerNotification";
+import MyProfile from "../Pages/User/Labour/MyProfile";
+import NewChat from "../Chat/ChatForLabour";
+import ContactsList from "../Chat/ContactList";
+import LabourNotifications from "../Pages/User/Labour/LabourNotifications ";
 const RoutesConfig = () => {
   return (
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<LandingPage/>} />
       <Route path="/labour/:labourId" element={<LabourProfileTwo />} />
-   
-   
-      <Route path="/show-labour-profile" element={<LabourProfilePage />} />
-      <Route path="/labour-profile" element={<LabourProfileTwo/>} />
+      <Route path="/labour-notifications" element={<LabourNotifications/>} />
+      <Route path="/chat" element={<NewChat />} />
+      <Route path="/show-labour-profile" element={<MyProfile />} />
+      {/* <Route path="/labour-profile" element={<LabourProfileTwo/>} /> */}
       <Route path="/edit-labour-profile" element={<EditLabourProfile/>} />
       <Route path="/job-details/:jobId" element={<JobDetailsPage />} />
       <Route path="/job-post-search" element={< JobPostSearch/>} />
@@ -71,13 +72,13 @@ const RoutesConfig = () => {
 
 {/* 
 //employer/ */}
+<Route path="/employer-chat" element={<NewChatForEmployer />} />
 
-<Route path="/chat" element={<NewChat />} />
 
-<Route path="/contact-list" element={<ContactsList />} />
+<Route path="/employer-notifications" element={<EmployeeNotifications/>} />
 <Route path="/post-job" element={<JobForm />} />
-<Route path="/set-employer-profile" element={<ProfileForm />} />
-<Route path="/update-employer-profile" element={<UpdateEmployerProfile />} />
+{/* <Route path="/set-employer-profile" element={<ProfileForm />} />
+<Route path="/update-employer-profile" element={<UpdateEmployerProfile />} /> */}
       <Route path="/show-employer-profile" element={<EmployerProfile />} />
       <Route path="/posted-job-posts" element={<PostedJobPosts />} /> {/* Fixed route */}
 
@@ -90,7 +91,7 @@ const RoutesConfig = () => {
 
 
       {/* Admin Routes */}
-      <Route path="/xs" element={<Home />}>
+      <Route path="/ss" element={<Home />}>
         <Route index element={<Dashboard />} />
         <Route path="users" element={<Users />} />
         <Route path="jobposts" element={<JobPosts />} />

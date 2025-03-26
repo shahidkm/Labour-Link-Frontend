@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import * as signalR from "@microsoft/signalr";
 import axios from "axios";
-import ContactsList from "./contactList";
-
+import ContactsList from "./ContactList";
+import NavbarTwo from "../Components/User/UserNavbar/Navbar2";
 interface ChatMessage {
   messageId?: string;
   senderId: string;
@@ -217,7 +217,9 @@ const NewChat: React.FC = () => {
   };
 
   return (
-    <div className="flex w-full h-screen overflow-hidden font-sans">
+    <>
+    <NavbarTwo/>
+    <div className="flex w-full h-screen overflow-hidden font-sans mt-20">
       <ContactsList
         selectedContactId={receiverId}
         onContactSelect={handleContactSelect}
@@ -298,6 +300,7 @@ const NewChat: React.FC = () => {
         )}
       </div>
     </div>
+    </>
   );
 };
 
